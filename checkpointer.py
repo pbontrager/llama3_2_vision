@@ -16,6 +16,7 @@ from safetensors.torch import save_file
 from torchtune import training
 
 from torchtune.models import convert_weights
+from llama3_2_vision._convert_weights import llama3_vision_meta_to_tune # TODO: convert to torchtune import
 from torchtune.models.phi3._convert_weights import phi3_hf_to_tune, phi3_tune_to_hf
 from torchtune.models.qwen2._convert_weights import qwen2_hf_to_tune, qwen2_tune_to_hf
 from torchtune.modules.rlhf.utils import reward_hf_to_tune, reward_tune_to_hf
@@ -140,7 +141,10 @@ class FullModelMetaCheckpointer(_CheckpointerInterface):
         """
         state_dict: Dict[str:Any] = {}
         model_state_dict = safe_torch_load(self._checkpoint_path)
-        state_dict[training.MODEL_KEY] = convert_weights.meta_to_tune(model_state_dict)
+        if self._model_type == ModelType.LLAMA3_VISION:
+            state_dict[training.MODEL_KEY] = llama3_vision_meta_to_tune(model_state_dict)
+        else:
+            state_dict[training.MODEL_KEY] = convert_weights.meta_to_tune(model_state_dict)
 
         if self._adapter_checkpoint:
             adapter_state_dict = safe_torch_load(self._adapter_checkpoint)
@@ -177,9 +181,13 @@ class FullModelMetaCheckpointer(_CheckpointerInterface):
 
         if not adapter_only:
             model_state_dict = state_dict[training.MODEL_KEY]
-            state_dict[training.MODEL_KEY] = convert_weights.tune_to_meta(
-                model_state_dict
-            )
+            if self._model_type == ModelType.LLAMA3_VISION:
+                #TODO add support for saving
+                raise NotImplementedError("Saving checkpoints for Llama3 Vision is not supported yet.")
+            else:
+                state_dict[training.MODEL_KEY] = convert_weights.tune_to_meta(
+                    model_state_dict
+                )
 
             # Output file is always a .pt file with the epoch number in the name
             checkpoint_file = Path.joinpath(

@@ -91,7 +91,7 @@ def _layer_num(key: str):
         return None
 
 
-def llama3_vision__meta_to_tune(
+def llama3_vision_meta_to_tune(
     state_dict: Dict[str, torch.Tensor]
 ) -> Dict[str, torch.Tensor]:
     """
