@@ -20,34 +20,35 @@
 # This config works only for training on single device.
 
 
-# Tokenizer
-tokenizer:
-  _component_: llama3_2_vision.llama3_2_transform # temp path
-  path: /tmp/Meta-Llama-3.1-8B-Instruct/tokenizer.model # temp path
-  max_seq_len: null
+# Transform
+tokenizer: # transform?
+  _component_: llama3_2_vision.llama3_2_transform
+  path: /tmp/Meta-Llama-3.1-8B-Instruct/tokenizer.model
+  # add prompt template + seq_len
+
 
 # Dataset
-dataset:
-  _component_: torchtune.datasets.alpaca_dataset
+dataset: # remove multimodal folder
+  _component_: torchtune.datasets.multimodal.the_cauldron_dataset
+  model_transform:
+  subset: spot_the_diff
+  #packed: True ensure this breaks gracefully
+
 seed: null
 shuffle: True
 
 # Model Arguments
 model:
-  _component_: torchtune.models.llama3_1.llama3_1_8b
+  _component_: llama3_2_vision.llama3_2_vision_11b
+  # pass in frozen flags
 
 checkpointer:
-  _component_: torchtune.training.FullModelHFCheckpointer
-  checkpoint_dir: /tmp/Meta-Llama-3.1-8B-Instruct/
-  checkpoint_files: [
-    model-00001-of-00004.safetensors,
-    model-00002-of-00004.safetensors,
-    model-00003-of-00004.safetensors,
-    model-00004-of-00004.safetensors
-  ]
+  _component_: checkpointer.FullModelMetaCheckpointer
+  checkpoint_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/
+  checkpoint_files: [consolidated.00.pth]
   recipe_checkpoint: null
-  output_dir: /tmp/Meta-Llama-3.1-8B-Instruct/
-  model_type: LLAMA3
+  output_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/
+  model_type: LLAMA3_VISION
 resume_from_checkpoint: False
 
 # Fine-tuning arguments
