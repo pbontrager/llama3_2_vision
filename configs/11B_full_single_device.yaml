@@ -22,13 +22,13 @@
 
 # Transform
 tokenizer:
-  _component_: llama3_2_vision.llama3_2_transform
+  _component_: llama3_2_vision.llama3_2_vision_transform
   path: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/tokenizer.model
 
 # Dataset
 dataset:
   _component_: torchtune.datasets.multimodal.the_cauldron_dataset
-  subset: spot_the_diff
+  subset: ai2d
 seed: null
 shuffle: True
 collate_fn: torchtune.data.padded_collate_tiled_images_and_mask
@@ -57,9 +57,9 @@ optimizer:
   lr: 2e-5
 loss:
   _component_: torchtune.modules.loss.CEWithChunkedOutputLoss
-max_steps_per_epoch: null
+max_steps_per_epoch: 100 #null
 gradient_accumulation_steps: 1
-optimizer_in_bwd: True
+optimizer_in_bwd: False # True
 compile: False
 
 # Training environment

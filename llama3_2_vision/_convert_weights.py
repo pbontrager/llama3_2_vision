@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import math
+import torch
 from typing import Dict
 
 from torchtune.models.convert_weights import get_mapped_key

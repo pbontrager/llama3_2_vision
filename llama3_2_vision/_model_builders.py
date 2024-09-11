@@ -4,12 +4,17 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+from typing import Optional
+
 import torch
 from torchtune.models.flamingo import flamingo_decoder, flamingo_vision_encoder, FlamingoTransform
 from torchtune.modules.model_fusion import DeepFusionModel
+from torchtune.modules.tokenizers import parse_hf_tokenizer_json
+from torchtune.data._prompt_templates import _TemplateType
+from torchtune.data._utils import _get_prompt_template
 
 
-def llama_3_2_vision_11b(decoder_trainable=False, encoder_trainable=True, fusion_trainable=True) -> DeepFusionModel:
+def llama3_2_vision_11b(decoder_trainable=False, encoder_trainable=True, fusion_trainable=True) -> DeepFusionModel:
     """ Llama 3.2 Vision 11B model
 
     Args:
@@ -80,7 +85,6 @@ def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, encoder_max_se
     return FlamingoTransform(
         path=path,
         special_tokens=special_tokens,
-        prompt_template=template,
         tile_size=448,
         patch_size=14,
         max_num_tiles=4,
@@ -88,5 +92,5 @@ def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, encoder_max_se
         encoder_max_seq_len=encoder_max_seq_len,
         image_mean=(0.48145466, 0.4578275, 0.40821073),
         image_std=(0.26862954, 0.26130258, 0.27577711),
-        prompt_template=None,
+        prompt_template=template,
     )
