@@ -122,7 +122,7 @@ class FullModelMetaCheckpointer(_CheckpointerInterface):
         )
 
         self._resume_from_checkpoint = resume_from_checkpoint
-        self._model_type = model_type
+        self._model_type = ModelType[model_type]
         self._output_dir = Path(output_dir)
 
         # recipe_checkpoint contains the recipe state. This should be available if
