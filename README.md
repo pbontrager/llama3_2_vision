@@ -33,6 +33,6 @@ All recipes are in torchtune while the configs are local. Run recipes as shown b
 > Due to [this issue](https://github.com/pytorch/torchtune/issues/1540) you can't use `tune run` from this repo
 
 ```bash
-tune cp finetune_single_device .
-python finetune_single_device.py --config configs/11B_full_single_device.yaml
+tune cp full_finetune_single_device .
+python full_finetune_single_device.py --config configs/11B_full_single_device.yaml
 ```
