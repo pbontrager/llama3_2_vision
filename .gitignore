@@ -4,6 +4,10 @@
 # To debug why a file is being ignored, use the command:
 #    git check-ignore -v $my_ignored_file
 
+# torchtune recipes
+full_finetune_single_device.py
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
