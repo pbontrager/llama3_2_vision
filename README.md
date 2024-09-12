@@ -29,11 +29,10 @@ pip install -e ".[dev]"
 
 All recipes are in torchtune while the configs are local. Run recipes as shown below. For more tune options see [torchtune Docs](https://pytorch.org/torchtune/stable/tune_cli.html)
 
-```bash
- tune run finetune_single_device --config configs/11B_full_single_device.yaml
-```
-
 > [!NOTE]
-> Due to [this issue](https://github.com/pytorch/torchtune/issues/1540), the above command won't work. Temporarily, to run a recipe run: (use python or torchrun)
-> \>>> tune cp finetune_single_device
-> \>>> python finetune_single_device --config configs/11B_full_single_device.yaml
+> Due to [this issue](https://github.com/pytorch/torchtune/issues/1540) you can't use `tune run` from this repo
+
+```bash
+tune cp finetune_single_device
+python finetune_single_device.py --config configs/11B_full_single_device.yaml
+```
