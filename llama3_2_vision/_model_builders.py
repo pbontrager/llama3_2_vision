@@ -33,7 +33,7 @@ def llama3_2_vision_11b(decoder_trainable=False, encoder_trainable=True, fusion_
         clip_hidden_states=[3, 7, 15, 23, 30],
         decoder_embed_dim=4096,
         num_layers_projection=8,
-        tile_size=448,
+        tile_size=560,
         max_num_tiles=4,
         in_channels=3,
     )
@@ -46,7 +46,7 @@ def llama3_2_vision_11b(decoder_trainable=False, encoder_trainable=True, fusion_
         num_kv_heads=8,
         embed_dim=4096,
         max_seq_len=8192,
-        encoder_max_seq_len=4100,
+        encoder_max_seq_len=64040,
         rope_base=500000.0,
         intermediate_dim=14336,
     )
@@ -59,7 +59,7 @@ def llama3_2_vision_11b(decoder_trainable=False, encoder_trainable=True, fusion_
     )
 
 
-def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, encoder_max_seq_len: int = 4100, special_tokens_path: Optional[str] = None, prompt_template: Optional[_TemplateType] = None) -> FlamingoTransform:
+def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, special_tokens_path: Optional[str] = None, prompt_template: Optional[_TemplateType] = None) -> FlamingoTransform:
     """
     Data Transforms (including Tokenizer) for Llama3 Vision.
 
@@ -67,8 +67,6 @@ def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, encoder_max_se
         path (str): path to the tokenizer
         max_seq_len (int): maximum sequence length for tokenizing a single list of messages,
             after which the input will be truncated.
-        encoder_max_seq_len (int): maximum number of image embeddings from the vision encoder,
-            after which the input will be truncated. This is a result of the number images.
         special_tokens_path (Optional[str]): Path to ``tokenizer.json`` from Hugging Face
             model files that contains all registered special tokens, or a local json file 
             structured similarly. Default is None to use the canonical Llama3 special tokens.
@@ -85,11 +83,10 @@ def llama3_2_vision_transform(path: str, max_seq_len: int = 8192, encoder_max_se
     return FlamingoTransform(
         path=path,
         special_tokens=special_tokens,
-        tile_size=448,
+        tile_size=560,
         patch_size=14,
         max_num_tiles=4,
         max_seq_len=max_seq_len,
-        encoder_max_seq_len=encoder_max_seq_len,
         image_mean=(0.48145466, 0.4578275, 0.40821073),
         image_std=(0.26862954, 0.26130258, 0.27577711),
         prompt_template=template,
