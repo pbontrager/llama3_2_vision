@@ -32,7 +32,15 @@ All recipes are in torchtune while the configs are local. Run recipes as shown b
 > [!NOTE]
 > Due to [this issue](https://github.com/pytorch/torchtune/issues/1540) you can't use `tune run` from this repo
 
+
+Single Device:
 ```bash
 tune cp full_finetune_single_device .
 python full_finetune_single_device.py --config configs/11B_full_single_device.yaml
+```
+
+Distributed
+```bash
+tune cp full_finetune_distributed .
+torchrun --nproc-per-node=4 full_finetune_distributed.py --config configs/11B_full.yaml
 ```
