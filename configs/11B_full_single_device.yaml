@@ -58,8 +58,8 @@ optimizer:
 loss:
   _component_: torchtune.modules.loss.CEWithChunkedOutputLoss
 max_steps_per_epoch: null #null
-gradient_accumulation_steps: 1 #256 or 1
-clip_grad_norm: True # False
+gradient_accumulation_steps: 4 #256 or 1
+clip_grad_norm: 1.0 # False
 optimizer_in_bwd: False
 compile: False
 
