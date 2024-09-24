@@ -17,7 +17,7 @@ from safetensors.torch import save_file
 from torchtune import training
 
 from torchtune.models import convert_weights
-from llama3_2_vision._convert_weights import llama3_vision_meta_to_tune # TODO: convert to torchtune import
+from llama3_2_vision._convert_weights import llama3_vision_meta_to_tune, llama3_vision_tune_to_meta
 from torchtune.models.phi3._convert_weights import phi3_hf_to_tune, phi3_tune_to_hf
 from torchtune.models.qwen2._convert_weights import qwen2_hf_to_tune, qwen2_tune_to_hf
 from torchtune.rlhf.utils import reward_hf_to_tune, reward_tune_to_hf
@@ -183,8 +183,7 @@ class FullModelMetaCheckpointer(_CheckpointerInterface):
         if not adapter_only:
             model_state_dict = state_dict[training.MODEL_KEY]
             if self._model_type == ModelType.LLAMA3_VISION:
-                #TODO add support for saving
-                raise NotImplementedError("Saving checkpoints for Llama3 Vision is not supported yet.")
+                state_dict[training.MODEL_KEY] = llama3_vision_tune_to_meta(model_state_dict)
             else:
                 state_dict[training.MODEL_KEY] = convert_weights.tune_to_meta(
                     model_state_dict

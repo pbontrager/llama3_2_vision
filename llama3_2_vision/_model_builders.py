@@ -54,8 +54,8 @@ def llama3_2_vision_11b(
         num_heads=32,
         num_kv_heads=8,
         embed_dim=4096,
-        max_seq_len=8192,
-        encoder_max_seq_len=64040,
+        max_seq_len=131_072,
+        encoder_max_seq_len=128_080,
         rope_base=500000.0,
         intermediate_dim=14336,
     )

@@ -98,6 +98,8 @@ def llama3_vision_meta_to_tune(
     """
     Convertor from Meta state dict to torchtune state dict. This handles:
     - Updateing the cross attention layer numbers
+    - reshaping the convolution weights
+    - skip loading the rope embeddings
     """
     converted_state_dict = {}
 
@@ -121,8 +123,6 @@ def llama3_vision_meta_to_tune(
             key_lst = new_key.split(".")
             key_lst[2] = str(new_layer)
             new_key = ".".join(key_lst)
-            if "gate_ffwd" in key or "gate_attn" in key:
-                value = value[:1]
         elif "conv1" in key:
             dim, flat_patch = value.shape
             patch_size = int(math.sqrt(flat_patch / 3))
@@ -130,5 +130,40 @@ def llama3_vision_meta_to_tune(
                 3 * patch_size**2 == flat_patch
             ), "Conversion assumes 3 channel inputs and square patch size"
             value = value.reshape(dim, 3, patch_size, patch_size)
+        converted_state_dict[new_key] = value
+    return converted_state_dict
+
+def llama3_vision_tune_to_meta(
+    state_dict: Dict[str, torch.Tensor]
+) -> Dict[str, torch.Tensor]:
+    """
+    Convertor from torchtune state dict to Meta state dict. This handles:
+    - Updateing the cross attention layer numbers
+    - reshaping the convolution weights
+    """
+    converted_state_dict = {}
+    inverted_mapping_dict = {v: k for k, v in _FROM_META.items()}
+
+    # Calculate fusion_interval: layer interval where cross attention layers are fused
+    num_layers = max(_layer_num(k) for k in state_dict if "layers" in k) + 1
+    num_fusion_layers = (
+        max(_layer_num(k) for k in state_dict if "cross_attention_layers" in k) + 1
+    )
+    assert (
+        num_layers % num_fusion_layers == 0
+    ), "Conversion assumes cross attention is added at regular intervals"
+    fusion_interval = num_layers // num_fusion_layers
+
+    for key, value in state_dict.items():
+        new_key = get_mapped_key(key, inverted_mapping_dict)
+        if "fusion_layer" in key:
+            layer = int(key.split(".")[2])
+            new_layer = (layer + 1) // fusion_interval - 1
+            key_lst = new_key.split(".")
+            key_lst[2] = str(new_layer)
+            new_key = ".".join(key_lst)
+        elif "conv" in key:
+            dim = value.shape[0]
+            value = value.reshape(dim, -1)
         converted_state_dict[new_key] = value
     return converted_state_dict
