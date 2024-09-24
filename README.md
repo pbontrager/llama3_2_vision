@@ -44,3 +44,15 @@ Distributed
 tune cp full_finetune_distributed .
 torchrun --nproc-per-node=4 full_finetune_distributed.py --config configs/11B_full.yaml
 ```
+
+LoRA Single Device
+```bash
+tune cp lora_finetune_single_device .
+python lora_finetune_single_device.py --config configs/11B_lora_single_device.yaml
+```
+
+LoRA Distributed
+```bash
+tune cp lora_finetune_single_device .
+python lora_finetune_distributed.py --config configs/11B_lora.yaml
+```
