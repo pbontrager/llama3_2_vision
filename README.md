@@ -35,8 +35,7 @@ All recipes are in torchtune while the configs are local. Run recipes as shown b
 
 Single Device:
 ```bash
-tune cp full_finetune_single_device .
-python full_finetune_single_device.py --config configs/11B_full_single_device.yaml
+tune run full_finetune_single_device --config configs/11B_full_single_device.yaml
 ```
 
 Distributed
@@ -47,12 +46,11 @@ torchrun --nproc-per-node=4 full_finetune_distributed.py --config configs/11B_fu
 
 LoRA Single Device
 ```bash
-tune cp lora_finetune_single_device .
-python lora_finetune_single_device.py --config configs/11B_lora_single_device.yaml
+tune run lora_finetune_single_device --config configs/11B_lora_single_device.yaml
 ```
 
 LoRA Distributed
 ```bash
-tune cp lora_finetune_single_device .
-python lora_finetune_distributed.py --config configs/11B_lora.yaml
+tune cp lora_finetune_distributed .
+torchrun --nproc-per-node=4 lora_finetune_distributed.py --config configs/11B_lora.yaml
 ```

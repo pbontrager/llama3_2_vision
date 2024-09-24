@@ -9,7 +9,7 @@ from typing import List, Optional
 
 import torch
 from torchtune.models.flamingo import flamingo_decoder, flamingo_vision_encoder, FlamingoTransform
-from torchtune.models.flamingo._component_builders import lora_flamingo_decoder, lora_flamingo_vision_encoder, LoRATrainable
+#from torchtune.models.flamingo._component_builders import lora_flamingo_decoder, lora_flamingo_vision_encoder, LoRATrainable
 from torchtune.modules.model_fusion import DeepFusionModel
 from torchtune.modules.tokenizers import parse_hf_tokenizer_json
 from torchtune.data._prompt_templates import _TemplateType
@@ -19,13 +19,17 @@ from torchtune.modules.peft import LORA_ATTN_MODULES
 def llama3_2_vision_11b(
     decoder_trainable: bool = False,
     encoder_trainable: bool = True,
-    fusion_trainable: bool = True) -> DeepFusionModel:
+    fusion_trainable: bool = True,
+    image_size: int = 560
+    ) -> DeepFusionModel:
     """ Llama 3.2 Vision 11B model
 
     Args:
         decoder_trainable (bool): Whether to make decoder params trainable. Default is False.
         encoder_trainable (bool): Whether to make encoder params trainable. Default is True.
         fusion_trainable (bool): Whether to make fusion params trainable. Default is True.
+        image_size (int): Base image size that images will be tiled and resized to. 
+            Default is 560 for Instruct weights, use 448 for pre-trained.
 
     Returns:
         DeepFusionModel: Instantiation of the Llama 3.2 Vision 11B model
@@ -38,7 +42,7 @@ def llama3_2_vision_11b(
         clip_hidden_states=[3, 7, 15, 23, 30],
         decoder_embed_dim=4096,
         num_layers_projection=8,
-        tile_size=560,
+        tile_size=image_size,
         max_num_tiles=4,
         in_channels=3,
     )
@@ -65,7 +69,7 @@ def llama3_2_vision_11b(
 
 
 def llama3_2_vision_transform(
-        path: str, max_seq_len: int = 8192, special_tokens_path: Optional[str] = None, prompt_template: Optional[_TemplateType] = None
+        path: str, max_seq_len: int = 8192, image_size: int = 560, special_tokens_path: Optional[str] = None, prompt_template: Optional[_TemplateType] = None
     ) -> FlamingoTransform:
     """
     Data Transforms (including Tokenizer) for Llama3 Vision.
@@ -74,6 +78,8 @@ def llama3_2_vision_transform(
         path (str): path to the tokenizer
         max_seq_len (int): maximum sequence length for tokenizing a single list of messages,
             after which the input will be truncated.
+        image_size (int): Base image size that images will be tiled and resized to. 
+            Default is 560 for Instruct weights, use 448 for pre-trained.
         special_tokens_path (Optional[str]): Path to ``tokenizer.json`` from Hugging Face
             model files that contains all registered special tokens, or a local json file 
             structured similarly. Default is None to use the canonical Llama3 special tokens.
@@ -90,7 +96,7 @@ def llama3_2_vision_transform(
     return FlamingoTransform(
         path=path,
         special_tokens=special_tokens,
-        tile_size=560,
+        tile_size=image_size,
         patch_size=14,
         max_num_tiles=4,
         max_seq_len=max_seq_len,
@@ -100,110 +106,113 @@ def llama3_2_vision_transform(
     )
 
 
-def lora_llama3_2_vision_11b(
-    lora_attn_modules: List[LORA_ATTN_MODULES],
-    decoder_trainable: str = "frozen", 
-    encoder_trainable: str = "lora",
-    fusion_trainable: str = "lora",
-    apply_lora_to_mlp: bool = False,
-    apply_lora_to_output: bool = False,
-    lora_rank: int = 8,
-    lora_alpha: float = 16,
-    lora_dropout: float = 0.0,
-    use_dora: bool = False,
-    quantize_base: bool = False,
-) -> DeepFusionModel:
-    """
-    Return a version of Llama3.2 vision (an instance of :func:`~torchtune.modules.model_fusion.DeepFusionModel`)
-    with LoRA applied based on the passed in configuration.
+# def lora_llama3_2_vision_11b(
+#     lora_attn_modules: List[LORA_ATTN_MODULES],
+#     decoder_trainable: str = "frozen", 
+#     encoder_trainable: str = "lora",
+#     fusion_trainable: str = "lora",
+#     apply_lora_to_mlp: bool = False,
+#     apply_lora_to_output: bool = False,
+#     lora_rank: int = 8,
+#     lora_alpha: float = 16,
+#     lora_dropout: float = 0.0,
+#     use_dora: bool = False,
+#     quantize_base: bool = False,
+#     image_size: int = 560
+# ) -> DeepFusionModel:
+#     """
+#     Return a version of Llama3.2 vision (an instance of :func:`~torchtune.modules.model_fusion.DeepFusionModel`)
+#     with LoRA applied based on the passed in configuration.
 
-    Args:
-        lora_attn_modules (List[LORA_ATTN_MODULES]): list of which linear layers
-            LoRA should be applied to in each self-attention block. Options are
-            ``{"q_proj", "k_proj", "v_proj", "output_proj"}``.
-        decoder_trainable (str): Option to set decoder params as fully trainble (full), lora trainable (lora), 
-            or frozen (frozen). The default is "frozen".
-        encoder_trainable (str): Option to set encoder params as fully trainble (full), lora trainable (lora), 
-            or frozen (frozen). The default is "lora".
-        fusion_trainable (str): Option to set fusion params as fully trainble (full), lora trainable (lora), 
-            or frozen (frozen). The default is "lora".
-        apply_lora_to_mlp (bool): whether to apply LoRA to the MLP in each transformer layer.
-            Default: False
-        apply_lora_to_output (bool): whether to apply LoRA to the model's final output projection.
-            Default: False
-        lora_rank (int): rank of each low-rank approximation
-        lora_alpha (float): scaling factor for the low-rank approximation
-        lora_dropout (float): LoRA dropout probability. Default: 0.0
-        quantize_base: (bool): Whether to quantize base model weights or not. Only applied to base
-            weights within linear layers LoRA is applied to. The final output linear projection is not
-            supported for quantization currently.
+#     Args:
+#         lora_attn_modules (List[LORA_ATTN_MODULES]): list of which linear layers
+#             LoRA should be applied to in each self-attention block. Options are
+#             ``{"q_proj", "k_proj", "v_proj", "output_proj"}``.
+#         decoder_trainable (str): Option to set decoder params as fully trainble (full), lora trainable (lora), 
+#             or frozen (frozen). The default is "frozen".
+#         encoder_trainable (str): Option to set encoder params as fully trainble (full), lora trainable (lora), 
+#             or frozen (frozen). The default is "lora".
+#         fusion_trainable (str): Option to set fusion params as fully trainble (full), lora trainable (lora), 
+#             or frozen (frozen). The default is "lora".
+#         apply_lora_to_mlp (bool): whether to apply LoRA to the MLP in each transformer layer.
+#             Default: False
+#         apply_lora_to_output (bool): whether to apply LoRA to the model's final output projection.
+#             Default: False
+#         lora_rank (int): rank of each low-rank approximation
+#         lora_alpha (float): scaling factor for the low-rank approximation
+#         lora_dropout (float): LoRA dropout probability. Default: 0.0
+#         quantize_base: (bool): Whether to quantize base model weights or not. Only applied to base
+#             weights within linear layers LoRA is applied to. The final output linear projection is not
+#             supported for quantization currently.
+#         image_size (int): Base image size that images will be tiled and resized to. 
+#             Default is 560 for Instruct weights, use 448 for pre-trained.
 
-    Returns:
-        DeepFusionModel: Instantiation of Llama3.2 vision model with LoRA applied to
-        a subset of the attention projections in each layer.
+#     Returns:
+#         DeepFusionModel: Instantiation of Llama3.2 vision model with LoRA applied to
+#         a subset of the attention projections in each layer.
 
-    """
-    decoder_type = LoRATrainable(decoder_trainable.lower())
-    encoder_type = LoRATrainable(encoder_trainable.lower())
-    fusion_type = LoRATrainable(fusion_trainable.lower())
-    encoder = lora_flamingo_vision_encoder(
-        encoder_lora=encoder_type == LoRATrainable.LORA,
-        fusion_lora=fusion_type == LoRATrainable.LORA,
-        lora_attn_modules=lora_attn_modules,
-        apply_lora_to_mlp=apply_lora_to_mlp,
-        apply_lora_to_output=apply_lora_to_output,
-        patch_size=14,
-        num_heads=16,
-        clip_embed_dim=1280,
-        clip_num_layers=32,
-        clip_hidden_states=[3, 7, 15, 23, 30],
-        decoder_embed_dim=4096,
-        num_layers_projection=8,
-        tile_size=560,
-        max_num_tiles=4,
-        in_channels=3,
-        lora_rank=lora_rank,
-        lora_alpha=lora_alpha,
-        lora_dropout=lora_dropout,
-        use_dora=use_dora,
-        quantize_base=quantize_base,
-    )
-    decoder = lora_flamingo_decoder(
-        decoder_lora=decoder_type == LoRATrainable.LORA,
-        fusion_lora=fusion_type == LoRATrainable.LORA,
-        lora_attn_modules=lora_attn_modules,
-        apply_lora_to_mlp=apply_lora_to_mlp,
-        apply_lora_to_output=apply_lora_to_output,
-        vocab_size=128_256,
-        num_layers=32,
-        fusion_interval=4,
-        num_special_tokens=8,
-        num_heads=32,
-        num_kv_heads=8,
-        embed_dim=4096,
-        max_seq_len=8192,
-        encoder_max_seq_len=64040,
-        rope_base=500000.0,
-        intermediate_dim=14336,
-        lora_rank=lora_rank,
-        lora_alpha=lora_alpha,
-        lora_dropout=lora_dropout,
-        use_dora=use_dora,
-        quantize_base=quantize_base,
-    )
-    return DeepFusionModel(
-        encoder=encoder,
-        decoder=decoder,
-        encoder_trainable=encoder_type != LoRATrainable.FROZEN,
-        decoder_trainable=decoder_type != LoRATrainable.FROZEN,
-        fusion_trainable=fusion_type != LoRATrainable.FROZEN,
-    )
+#     """
+#     decoder_type = LoRATrainable(decoder_trainable.lower())
+#     encoder_type = LoRATrainable(encoder_trainable.lower())
+#     fusion_type = LoRATrainable(fusion_trainable.lower())
+#     encoder = lora_flamingo_vision_encoder(
+#         encoder_lora=encoder_type == LoRATrainable.LORA,
+#         fusion_lora=fusion_type == LoRATrainable.LORA,
+#         lora_attn_modules=lora_attn_modules,
+#         apply_lora_to_mlp=apply_lora_to_mlp,
+#         apply_lora_to_output=apply_lora_to_output,
+#         patch_size=14,
+#         num_heads=16,
+#         clip_embed_dim=1280,
+#         clip_num_layers=32,
+#         clip_hidden_states=[3, 7, 15, 23, 30],
+#         decoder_embed_dim=4096,
+#         num_layers_projection=8,
+#         tile_size=image_size,
+#         max_num_tiles=4,
+#         in_channels=3,
+#         lora_rank=lora_rank,
+#         lora_alpha=lora_alpha,
+#         lora_dropout=lora_dropout,
+#         use_dora=use_dora,
+#         quantize_base=quantize_base,
+#     )
+#     decoder = lora_flamingo_decoder(
+#         decoder_lora=decoder_type == LoRATrainable.LORA,
+#         fusion_lora=fusion_type == LoRATrainable.LORA,
+#         lora_attn_modules=lora_attn_modules,
+#         apply_lora_to_mlp=apply_lora_to_mlp,
+#         apply_lora_to_output=apply_lora_to_output,
+#         vocab_size=128_256,
+#         num_layers=32,
+#         fusion_interval=4,
+#         num_special_tokens=8,
+#         num_heads=32,
+#         num_kv_heads=8,
+#         embed_dim=4096,
+#         max_seq_len=8192,
+#         encoder_max_seq_len=64040,
+#         rope_base=500000.0,
+#         intermediate_dim=14336,
+#         lora_rank=lora_rank,
+#         lora_alpha=lora_alpha,
+#         lora_dropout=lora_dropout,
+#         use_dora=use_dora,
+#         quantize_base=quantize_base,
+#     )
+#     return DeepFusionModel(
+#         encoder=encoder,
+#         decoder=decoder,
+#         encoder_trainable=encoder_type != LoRATrainable.FROZEN,
+#         decoder_trainable=decoder_type != LoRATrainable.FROZEN,
+#         fusion_trainable=fusion_type != LoRATrainable.FROZEN,
+#     )
 
 
-qlora_llama3_2_vision_11b = partial(lora_llama3_2_vision_11b, quantize_base=True)
+# qlora_llama3_2_vision_11b = partial(lora_llama3_2_vision_11b, quantize_base=True)
 
-qlora_llama3_2_vision_11b.__doc__ = """
-Builder for creating a Llama3.2 vision 11B model with QLoRA enabled. Base model weights in linear layers
-that LoRA is applied to are quantized per the QLoRA paper: https://arxiv.org/abs/2305.14314.
-Please see `lora_llama3_2_vision_11b` for full API arguments.
-"""
+# qlora_llama3_2_vision_11b.__doc__ = """
+# Builder for creating a Llama3.2 vision 11B model with QLoRA enabled. Base model weights in linear layers
+# that LoRA is applied to are quantized per the QLoRA paper: https://arxiv.org/abs/2305.14314.
+# Please see `lora_llama3_2_vision_11b` for full API arguments.
+# """
