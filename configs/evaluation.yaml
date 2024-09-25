@@ -1,7 +1,7 @@
 # Config for running the InferenceRecipe in generate.py to generate output from an LLM
 #
 # This config assumes that you've run the following command before launching:
-#   tune download meta-llama/Meta-Llama-3.2-11B-Vision-Instruct
+#   tune download meta-llama/Meta-Llama-3.2-11B-Vision-Instruct --output-dir /tmp/Meta-Llama-3.2-11B-Vision-Instruct
 #
 # It also assumes that you've downloaded the EleutherAI Eval Harness:
 #   pip install git+https://github.com/EleutherAI/lm-evaluation-harness.git@fb963f0f0a5b28b69763590bb59676072cf43a01
@@ -11,20 +11,20 @@
 
 # Model arguments
 model:
-  _component_: llama3_2_vision.llama3_2_vision_11b
+  _component_: torchtune.models.llama3_2_vision.llama3_2_vision_11b
 
 # Transform arguments
 tokenizer:
-  _component_: llama3_2_vision.llama3_2_vision_transform
-  path: ../joe-torchtune/tokenizer.model
+  _component_: torchtune.models.llama3_2_vision.llama3_2_vision_transform
+  path: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/original/tokenizer.model
   max_seq_len: 8192 # Limit the size of our inputs
 
 # Checkpointer
 checkpointer:
-  _component_: checkpointer.FullModelMetaCheckpointer
-  checkpoint_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/
+  _component_: torchtune.training.FullModelMetaCheckpointer
+  checkpoint_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/original
   checkpoint_files: [consolidated.pth]
-  output_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/
+  output_dir: ./
   model_type: LLAMA3_VISION
 
 # Environment
