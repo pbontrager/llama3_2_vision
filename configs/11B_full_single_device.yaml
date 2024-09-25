@@ -2,7 +2,7 @@
 # using a Llama3.2 11B Vision Instruct model
 #
 # This config assumes that you've run the following command before launching:
-#   tune download meta-llama/Meta-Llama-3.2-11B-Vision-Instruct
+#   tune download meta-llama/Meta-Llama-3.2-11B-Vision-Instruct --output-dir /tmp/Meta-Llama-3.2-11B-Vision-Instruct
 #
 # The default config uses an optimizer from bitsandbytes. If you do not have it installed,
 # you can install it with:
@@ -19,7 +19,7 @@
 
 # Model arguments
 model:
-  _component_: llama3_2_vision.llama3_2_vision_11b
+  _component_: torchtune.models.llama3_2_vision.llama3_2_vision_11b
   decoder_trainable: False
   encoder_trainable: True
   fusion_trainable: True
@@ -27,13 +27,13 @@ model:
 
 # Transform
 tokenizer:
-  _component_: llama3_2_vision.llama3_2_vision_transform
+  _component_: torchtune.models.llama3_2_vision.llama3_2_vision_transform
   path: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/original/tokenizer.model
   image_size: 560
 
 # Checkpointer
 checkpointer:
-  _component_: checkpointer.FullModelMetaCheckpointer
+  _component_: torchtune.training.FullModelMetaCheckpointer
   checkpoint_dir: /tmp/Meta-Llama-3.2-11B-Vision-Instruct/original/
   checkpoint_files: [consolidated.pth]
   recipe_checkpoint: null
