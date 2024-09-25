@@ -6,7 +6,7 @@
 
 import math
 import torch
-from typing import Dict
+from typing import Dict, List, Optional
 
 from torchtune.models.convert_weights import get_mapped_key
 

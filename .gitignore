@@ -5,7 +5,10 @@
 #    git check-ignore -v $my_ignored_file
 
 # torchtune recipes
+full_finetune_distributed.py
 full_finetune_single_device.py
+lora_finetune_distributed.py
+lora_finetune_single_device.py
 
 
 # Byte-compiled / optimized / DLL files
